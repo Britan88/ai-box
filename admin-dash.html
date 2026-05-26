@@ -1,0 +1,2763 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>model router · admin</title>
+        <link rel="stylesheet" href="colors_and_type.css" />
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+            }
+            body {
+                font-family: var(--font-sans);
+                font-size: var(--fs-12);
+                color: var(--text);
+                background:
+                    radial-gradient(
+                        700px 400px at 75% -5%,
+                        rgba(88, 166, 255, 0.04),
+                        transparent 60%
+                    ),
+                    radial-gradient(
+                        500px 350px at 5% 95%,
+                        rgba(63, 185, 80, 0.03),
+                        transparent 60%
+                    ),
+                    var(--bg);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .topbar {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 9px 20px;
+                background: var(--bg1);
+                border-bottom: 1px solid var(--border);
+                flex-shrink: 0;
+            }
+            .brand {
+                display: flex;
+                align-items: baseline;
+                gap: 10px;
+            }
+            .brand-mark {
+                font-family: var(--font-mono);
+                font-weight: 700;
+                font-size: 13px;
+                color: var(--accent);
+                padding: 3px 8px;
+                border: 1px solid
+                    color-mix(in srgb, var(--accent) 40%, transparent);
+                border-radius: var(--radius-sm);
+            }
+            .brand-name {
+                font-weight: 700;
+                color: var(--text-hi);
+                font-size: var(--fs-14);
+            }
+            .brand-sub {
+                color: var(--text2);
+                font-size: var(--fs-11);
+                font-family: var(--font-mono);
+            }
+            .topbar-right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-left: auto;
+            }
+            .theme-switch {
+                display: flex;
+                gap: 3px;
+            }
+            .statusbar {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                padding: 4px 20px;
+                background: color-mix(in srgb, var(--bg1) 60%, transparent);
+                border-bottom: 1px solid var(--border);
+                flex-shrink: 0;
+                font-size: var(--fs-10);
+                color: var(--text2);
+                font-family: var(--font-mono);
+            }
+            .status-item {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .status-dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: var(--green);
+                flex-shrink: 0;
+            }
+            .status-dot.err {
+                background: var(--red);
+            }
+            .status-dot.idle {
+                background: var(--muted);
+            }
+            .btn {
+                font-family: inherit;
+                font-size: var(--fs-11);
+                padding: 5px 12px;
+                background: var(--bg2);
+                color: var(--text);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                font-weight: 500;
+                transition:
+                    background var(--dur-1),
+                    border-color var(--dur-1);
+            }
+            .btn:hover {
+                background: var(--bg3);
+            }
+            .btn:active {
+                transform: translateY(1px);
+            }
+            .btn:disabled {
+                opacity: 0.45;
+                cursor: not-allowed;
+            }
+            .btn-primary {
+                background: var(--accent);
+                color: #fff;
+                border-color: transparent;
+                font-weight: 700;
+            }
+            .btn-primary:hover {
+                filter: brightness(1.1);
+                background: var(--accent);
+            }
+            .btn-danger {
+                background: var(--red);
+                color: #fff;
+                border-color: transparent;
+            }
+            .btn-ghost {
+                background: transparent;
+                border-color: transparent;
+                color: var(--text2);
+            }
+            .btn-ghost:hover {
+                color: var(--text-hi);
+                background: var(--bg2);
+            }
+            .btn-sm {
+                font-size: var(--fs-9);
+                padding: 3px 8px;
+            }
+            .main {
+                display: flex;
+                flex: 1;
+                overflow: hidden;
+                padding: 12px;
+                gap: 12px;
+            }
+            .sidebar {
+                width: 260px;
+                flex-shrink: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                overflow: hidden;
+            }
+            .content {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                min-width: 0;
+                overflow: hidden;
+            }
+            .section {
+                background: var(--bg1);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                min-height: 0;
+            }
+            .section-head {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 12px;
+                border-bottom: 1px solid var(--border);
+                flex-shrink: 0;
+                min-height: 36px;
+                background: linear-gradient(
+                    180deg,
+                    rgba(255, 255, 255, 0.02),
+                    transparent
+                );
+            }
+            .section-title {
+                font-size: var(--fs-11);
+                font-weight: 700;
+                color: var(--text-hi);
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .section-actions {
+                display: flex;
+                gap: 6px;
+                align-items: center;
+                margin-left: auto;
+            }
+            .section-body {
+                flex: 1;
+                overflow-y: auto;
+                min-height: 0;
+            }
+            .stat-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .stat-card {
+                background: var(--bg1);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 10px 12px;
+                transition:
+                    border-color var(--dur-2),
+                    transform var(--dur-1);
+                cursor: default;
+            }
+            .stat-card:hover {
+                border-color: var(--accent);
+                transform: translateY(-1px);
+            }
+            .stat-label {
+                font-size: var(--fs-9);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--text2);
+                margin-bottom: 4px;
+                font-weight: 600;
+            }
+            .stat-value {
+                font-size: var(--fs-20);
+                font-weight: 700;
+                color: var(--text-hi);
+                font-family: var(--font-mono);
+                line-height: 1;
+            }
+            .stat-sub {
+                font-size: var(--fs-9);
+                color: var(--muted);
+                margin-top: 3px;
+            }
+            .chip {
+                font-size: var(--fs-9);
+                padding: 2px 7px;
+                border-radius: var(--radius-sm);
+                background: var(--bg2);
+                border: 1px solid var(--border);
+                color: var(--text2);
+                font-weight: 600;
+                display: inline-block;
+                white-space: nowrap;
+            }
+            .chip-green {
+                color: var(--green);
+                border-color: color-mix(in srgb, var(--green) 35%, transparent);
+                background: color-mix(in srgb, var(--green) 10%, transparent);
+            }
+            .chip-red {
+                color: var(--red);
+                border-color: color-mix(in srgb, var(--red) 35%, transparent);
+                background: color-mix(in srgb, var(--red) 10%, transparent);
+            }
+            .chip-yellow {
+                color: var(--yellow);
+                border-color: color-mix(
+                    in srgb,
+                    var(--yellow) 35%,
+                    transparent
+                );
+                background: color-mix(in srgb, var(--yellow) 10%, transparent);
+            }
+            .chip-accent {
+                color: var(--accent);
+                border-color: color-mix(
+                    in srgb,
+                    var(--accent) 35%,
+                    transparent
+                );
+                background: color-mix(in srgb, var(--accent) 10%, transparent);
+            }
+            .chip-purple {
+                color: var(--purple);
+                border-color: color-mix(
+                    in srgb,
+                    var(--purple) 35%,
+                    transparent
+                );
+                background: color-mix(in srgb, var(--purple) 10%, transparent);
+            }
+            .count-badge {
+                font-family: var(--font-mono);
+                font-size: var(--fs-9);
+                padding: 2px 6px;
+                background: var(--bg2);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                color: var(--text2);
+            }
+            .tabs {
+                display: flex;
+                gap: 2px;
+                padding: 8px 12px 0;
+                flex-shrink: 0;
+            }
+            .tab {
+                font-size: var(--fs-11);
+                font-weight: 600;
+                padding: 5px 14px;
+                border: 1px solid transparent;
+                border-bottom: none;
+                border-radius: var(--radius) var(--radius) 0 0;
+                cursor: pointer;
+                color: var(--text2);
+                background: transparent;
+                transition:
+                    color var(--dur-1),
+                    background var(--dur-1);
+            }
+            .tab:hover {
+                color: var(--text-hi);
+                background: var(--bg2);
+            }
+            .tab.active {
+                background: var(--bg1);
+                border-color: var(--border);
+                color: var(--text-hi);
+            }
+            .tab-panel {
+                display: none;
+                flex: 1;
+                flex-direction: column;
+                overflow: hidden;
+                min-height: 0;
+            }
+            .tab-panel.active {
+                display: flex;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            thead th {
+                font-size: var(--fs-9);
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: var(--text2);
+                font-weight: 600;
+                padding: 6px 8px;
+                border-bottom: 1px solid var(--border);
+                text-align: left;
+                background: var(--bg1);
+                position: sticky;
+                top: 0;
+                z-index: 1;
+            }
+            thead th.sortable {
+                cursor: pointer;
+            }
+            thead th.sortable:hover {
+                color: var(--text-hi);
+            }
+            thead th.sort-active {
+                color: var(--accent);
+            }
+            tbody tr {
+                border-bottom: 1px solid var(--border);
+                transition: background var(--dur-1);
+            }
+            tbody tr:last-child {
+                border-bottom: none;
+            }
+            tbody tr.clickable {
+                cursor: pointer;
+            }
+            tbody tr.clickable:hover {
+                background: var(--bg2);
+            }
+            tbody td {
+                padding: 6px 8px;
+                vertical-align: middle;
+            }
+            .empty-row td {
+                text-align: center;
+                color: var(--muted);
+                padding: 28px;
+                font-size: var(--fs-11);
+            }
+            .search-wrap {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 7px 12px;
+                border-bottom: 1px solid var(--border);
+                flex-shrink: 0;
+            }
+            .search-prompt {
+                color: var(--accent);
+                font-family: var(--font-mono);
+                font-size: var(--fs-12);
+            }
+            .search-input {
+                flex: 1;
+                background: transparent;
+                border: none;
+                outline: none;
+                font-family: var(--font-mono);
+                font-size: var(--fs-12);
+                color: var(--text-hi);
+            }
+            .search-input::placeholder {
+                color: var(--muted);
+            }
+            .search-count {
+                font-family: var(--font-mono);
+                font-size: var(--fs-9);
+                color: var(--muted);
+                white-space: nowrap;
+            }
+            .filter-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .filter-btn {
+                font-size: var(--fs-9);
+                padding: 2px 8px;
+                border-radius: var(--radius-sm);
+                background: var(--bg2);
+                border: 1px solid var(--border);
+                color: var(--text2);
+                cursor: pointer;
+                font-weight: 600;
+                transition: all var(--dur-1);
+            }
+            .filter-btn:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+            .filter-btn.active {
+                background: color-mix(in srgb, var(--accent) 15%, transparent);
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+            .filter-btn.f-green.active {
+                background: color-mix(in srgb, var(--green) 15%, transparent);
+                border-color: var(--green);
+                color: var(--green);
+            }
+            .filter-btn.f-red.active {
+                background: color-mix(in srgb, var(--red) 15%, transparent);
+                border-color: var(--red);
+                color: var(--red);
+            }
+            .sec-label {
+                font-size: var(--fs-9);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: var(--muted);
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+            .overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 10;
+                display: none;
+            }
+            .overlay.show {
+                display: block;
+            }
+            .detail {
+                position: fixed;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 400px;
+                max-width: 95vw;
+                background: var(--bg1);
+                border-left: 1px solid var(--border);
+                z-index: 11;
+                display: flex;
+                flex-direction: column;
+                transform: translateX(100%);
+                transition: transform var(--dur-3) var(--ease);
+                overflow: hidden;
+            }
+            .detail.open {
+                transform: translateX(0);
+            }
+            .detail-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                border-bottom: 1px solid var(--border);
+                flex-shrink: 0;
+            }
+            .detail-title {
+                font-weight: 700;
+                color: var(--text-hi);
+                font-family: var(--font-mono);
+                font-size: var(--fs-12);
+            }
+            .detail-body {
+                flex: 1;
+                overflow-y: auto;
+                padding: 14px 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+            .detail-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 3px 0;
+            }
+            .detail-key {
+                font-size: var(--fs-11);
+                color: var(--text2);
+                flex-shrink: 0;
+                min-width: 90px;
+            }
+            .detail-val {
+                font-size: var(--fs-11);
+                color: var(--text-hi);
+                text-align: right;
+                font-family: var(--font-mono);
+                word-break: break-all;
+            }
+            .zp-input {
+                font-family: var(--font-mono);
+                font-size: var(--fs-12);
+                padding: 6px 10px;
+                background: var(--bg);
+                color: var(--text-hi);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                outline: none;
+                width: 100%;
+                transition:
+                    border-color var(--dur-1),
+                    box-shadow var(--dur-1);
+            }
+            .zp-input:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px
+                    color-mix(in srgb, var(--accent) 20%, transparent);
+            }
+            .chat-area {
+                flex: 1;
+                overflow-y: auto;
+                padding: 12px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                min-height: 0;
+            }
+            .chat-bubble-wrap {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+            .chat-bubble-wrap.user {
+                align-items: flex-end;
+            }
+            .chat-bubble-wrap.assistant {
+                align-items: flex-start;
+            }
+            .chat-role {
+                font-size: var(--fs-9);
+                color: var(--text2);
+                font-family: var(--font-mono);
+                margin-bottom: 2px;
+            }
+            .chat-bubble {
+                font-family: var(--font-mono);
+                font-size: var(--fs-12);
+                white-space: pre-wrap;
+                line-height: 1.6;
+                padding: 8px 12px;
+                border-radius: var(--radius);
+                border: 1px solid var(--border);
+                max-width: 90%;
+            }
+            .chat-bubble.user {
+                background: color-mix(in srgb, var(--accent) 8%, transparent);
+                color: var(--text-hi);
+                border-color: color-mix(
+                    in srgb,
+                    var(--accent) 25%,
+                    transparent
+                );
+            }
+            .chat-bubble.assistant {
+                background: var(--bg);
+                color: var(--text-hi);
+            }
+            .chat-meta {
+                font-size: var(--fs-9);
+                color: var(--muted);
+                font-family: var(--font-mono);
+                display: flex;
+                gap: 8px;
+                margin-top: 3px;
+                padding: 0 4px;
+            }
+            .bar-wrap {
+                height: 4px;
+                background: var(--bg2);
+                border-radius: 2px;
+                overflow: hidden;
+                width: 60px;
+                display: inline-block;
+                vertical-align: middle;
+                margin-left: 4px;
+            }
+            .bar-fill {
+                height: 100%;
+                border-radius: 2px;
+                transition: width 0.3s;
+            }
+            .models-summary-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+                gap: 8px;
+                padding: 10px;
+                flex-shrink: 0;
+                border-bottom: 1px solid var(--border);
+            }
+            .model-type-card {
+                background: var(--bg1);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 10px 12px;
+                cursor: pointer;
+                transition: border-color var(--dur-2);
+            }
+            .model-type-card:hover {
+                border-color: var(--accent);
+            }
+            .model-type-head {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            .model-type-name {
+                font-size: var(--fs-11);
+                font-weight: 700;
+                color: var(--text-hi);
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+            .model-type-bar {
+                height: 3px;
+                background: var(--bg2);
+                border-radius: 2px;
+                overflow: hidden;
+                margin-bottom: 6px;
+            }
+            .model-type-bar-fill {
+                height: 100%;
+                border-radius: 2px;
+                transition: width 0.4s;
+            }
+            .model-type-stats {
+                display: flex;
+                gap: 8px;
+                font-size: var(--fs-9);
+                font-family: var(--font-mono);
+            }
+            .ptype {
+                font-size: var(--fs-9);
+                color: var(--purple);
+                font-family: var(--font-mono);
+            }
+            .pagination {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 12px;
+                border-top: 1px solid var(--border);
+                flex-shrink: 0;
+                font-size: var(--fs-11);
+                color: var(--text2);
+            }
+            .page-info {
+                font-family: var(--font-mono);
+                font-size: var(--fs-10);
+            }
+            .error-bar {
+                font-size: var(--fs-11);
+                color: var(--red);
+                padding: 6px 10px;
+                background: color-mix(in srgb, var(--red) 10%, transparent);
+                border: 1px solid
+                    color-mix(in srgb, var(--red) 30%, transparent);
+                border-radius: var(--radius);
+                display: none;
+            }
+            .error-bar.show {
+                display: block;
+            }
+            .toast {
+                position: fixed;
+                bottom: 24px;
+                left: 50%;
+                transform: translateX(-50%) translateY(80px);
+                background: var(--bg2);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 8px 16px;
+                font-size: var(--fs-12);
+                color: var(--text-hi);
+                transition: transform 0.25s var(--ease);
+                z-index: 99;
+                pointer-events: none;
+                white-space: nowrap;
+            }
+            .toast.show {
+                transform: translateX(-50%) translateY(0);
+            }
+            .toast.toast-ok {
+                border-color: color-mix(in srgb, var(--green) 50%, transparent);
+                color: var(--green);
+            }
+            .toast.toast-err {
+                border-color: color-mix(in srgb, var(--red) 50%, transparent);
+                color: var(--red);
+            }
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+            .spinner {
+                width: 13px;
+                height: 13px;
+                border: 2px solid var(--border);
+                border-top-color: var(--accent);
+                border-radius: 50%;
+                animation: spin 0.6s linear infinite;
+                display: inline-block;
+            }
+            .hidden {
+                display: none !important;
+            }
+            ::-webkit-scrollbar {
+                width: 5px;
+                height: 5px;
+            }
+            ::-webkit-scrollbar-track {
+                background: var(--bg);
+            }
+            ::-webkit-scrollbar-thumb {
+                background: var(--muted);
+                border-radius: 3px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--text2);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="topbar">
+            <div class="brand">
+                <span class="brand-mark">mr</span>
+                <span class="brand-name">model router</span>
+                <span class="brand-sub">admin</span>
+            </div>
+            <div class="topbar-right">
+                <span
+                    id="tb-base"
+                    style="
+                        font-family: var(--font-mono);
+                        font-size: var(--fs-11);
+                        color: var(--text2);
+                    "
+                    >localhost:8000</span
+                >
+                <button class="btn btn-ghost btn-sm" onclick="editBase()">
+                    ✎
+                </button>
+                <div
+                    style="width: 1px; height: 16px; background: var(--border)"
+                ></div>
+                <div class="theme-switch">
+                    <button class="btn btn-ghost btn-sm" data-theme-set="dark">
+                        🌙
+                    </button>
+                    <button class="btn btn-ghost btn-sm" data-theme-set="light">
+                        ☀️
+                    </button>
+                    <button class="btn btn-ghost btn-sm" data-theme-set="hyper">
+                        ⚡
+                    </button>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="refreshAll()">
+                    ↻ refresh
+                </button>
+            </div>
+        </div>
+
+        <div class="statusbar">
+            <div class="status-item">
+                <div class="status-dot idle" id="dot-health"></div>
+                <span id="sb-health">connecting…</span>
+            </div>
+            <div class="status-item" style="margin-left: 8px">
+                <span id="sb-cf" style="color: var(--muted)">cf: —</span>
+            </div>
+            <div class="status-item">
+                <span id="sb-aiio" style="color: var(--muted)">aiio: —</span>
+            </div>
+            <div class="status-item">
+                <span id="sb-models" style="color: var(--muted)"
+                    >models ok: —</span
+                >
+            </div>
+            <span
+                style="margin-left: auto; color: var(--muted)"
+                id="sb-time"
+            ></span>
+        </div>
+
+        <div class="main">
+            <!-- SIDEBAR -->
+            <div class="sidebar">
+                <div class="section" style="flex-shrink: 0">
+                    <div class="section-head">
+                        <span class="section-title">overview</span>
+                        <span class="spinner hidden" id="stat-spinner"></span>
+                    </div>
+                    <div class="section-body" style="padding: 10px">
+                        <div class="stat-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">cf accounts</div>
+                                <div class="stat-value" id="s-cf-total">—</div>
+                                <div class="stat-sub" id="s-cf-sub"></div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">aiio accounts</div>
+                                <div class="stat-value" id="s-aiio-total">
+                                    —
+                                </div>
+                                <div class="stat-sub" id="s-aiio-sub"></div>
+                            </div>
+                            <div
+                                class="stat-card"
+                                style="
+                                    border-color: color-mix(
+                                        in srgb,
+                                        var(--green) 30%,
+                                        transparent
+                                    );
+                                "
+                            >
+                                <div class="stat-label">models ok</div>
+                                <div
+                                    class="stat-value"
+                                    id="s-ok"
+                                    style="color: var(--green)"
+                                >
+                                    —
+                                </div>
+                                <div class="stat-sub" id="s-ok-sub"></div>
+                            </div>
+                            <div
+                                class="stat-card"
+                                style="
+                                    border-color: color-mix(
+                                        in srgb,
+                                        var(--red) 20%,
+                                        transparent
+                                    );
+                                "
+                            >
+                                <div class="stat-label">errors</div>
+                                <div
+                                    class="stat-value"
+                                    id="s-err"
+                                    style="color: var(--red)"
+                                >
+                                    —
+                                </div>
+                                <div class="stat-sub" id="s-err-sub"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" style="flex: 1; min-height: 0">
+                    <div class="section-head">
+                        <span class="section-title" id="sf-title">filters</span>
+                    </div>
+                    <div
+                        class="section-body"
+                        style="
+                            padding: 10px 12px;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 12px;
+                        "
+                        id="sf-body"
+                    >
+                        <div
+                            style="color: var(--muted); font-size: var(--fs-11)"
+                        >
+                            select a tab
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENT -->
+            <div class="content">
+                <div class="section" style="flex: 1">
+                    <div class="tabs">
+                        <button
+                            class="tab active"
+                            data-tab="models"
+                            onclick="switchTab('models', this)"
+                        >
+                            🤖 models
+                        </button>
+                        <button
+                            class="tab"
+                            data-tab="accounts"
+                            onclick="switchTab('accounts', this)"
+                        >
+                            👤 accounts
+                        </button>
+                        <button
+                            class="tab"
+                            data-tab="playground"
+                            onclick="switchTab('playground', this)"
+                        >
+                            ▶ playground
+                        </button>
+                        <button
+                            class="tab"
+                            data-tab="testlab"
+                            onclick="switchTab('testlab', this)"
+                        >
+                            🧪 test lab
+                        </button>
+                    </div>
+
+                    <!-- MODELS -->
+                    <div class="tab-panel active" id="panel-models">
+                        <div
+                            class="section-head"
+                            style="border-top: 1px solid var(--border)"
+                        >
+                            <span class="section-title">test results</span>
+                            <div class="section-actions">
+                                <span class="count-badge" id="m-count">—</span>
+                                <button
+                                    class="btn btn-sm"
+                                    onclick="loadModels()"
+                                >
+                                    ↻
+                                </button>
+                            </div>
+                        </div>
+                        <div class="search-wrap">
+                            <span class="search-prompt">&gt;</span>
+                            <input
+                                class="search-input"
+                                id="m-search"
+                                placeholder="search model name…"
+                                autocomplete="off"
+                                spellcheck="false"
+                            />
+                            <span
+                                class="search-count"
+                                id="m-search-count"
+                            ></span>
+                        </div>
+                        <div
+                            id="model-type-grid"
+                            class="models-summary-grid"
+                            style="display: none"
+                        ></div>
+                        <div class="section-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 44px">prov</th>
+                                        <th
+                                            style="width: 70px"
+                                            class="sortable"
+                                            onclick="sortModels('type')"
+                                        >
+                                            type
+                                        </th>
+                                        <th
+                                            class="sortable sort-active"
+                                            onclick="sortModels('model')"
+                                        >
+                                            model
+                                        </th>
+                                        <th style="width: 56px">status</th>
+                                        <th
+                                            style="width: 90px"
+                                            class="sortable"
+                                            onclick="sortModels('avtime')"
+                                        >
+                                            latency ↕
+                                        </th>
+                                        <th>error</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="m-body">
+                                    <tr class="empty-row">
+                                        <td colspan="6">loading…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination">
+                            <button class="btn btn-sm" onclick="mPage(-1)">
+                                ‹ prev
+                            </button>
+                            <span class="page-info" id="m-page-info"
+                                >— / —</span
+                            >
+                            <button class="btn btn-sm" onclick="mPage(1)">
+                                next ›
+                            </button>
+                            <span
+                                style="
+                                    margin-left: auto;
+                                    font-size: var(--fs-10);
+                                    color: var(--muted);
+                                "
+                                id="m-total-info"
+                            ></span>
+                        </div>
+                    </div>
+
+                    <!-- ACCOUNTS -->
+                    <div class="tab-panel" id="panel-accounts">
+                        <div
+                            class="section-head"
+                            style="border-top: 1px solid var(--border)"
+                        >
+                            <span class="section-title">accounts</span>
+                            <div class="section-actions">
+                                <select
+                                    id="acc-provider"
+                                    class="zp-input"
+                                    style="width: 90px; font-size: var(--fs-11)"
+                                    onchange="
+                                        accPage_ = 1;
+                                        loadAccounts();
+                                    "
+                                >
+                                    <option value="cf">cf</option>
+                                    <option value="aiio">aiio</option>
+                                </select>
+                                <span class="count-badge" id="acc-count"
+                                    >—</span
+                                >
+                                <button
+                                    class="btn btn-sm"
+                                    onclick="loadAccounts()"
+                                >
+                                    ↻
+                                </button>
+                            </div>
+                        </div>
+                        <div class="search-wrap">
+                            <span class="search-prompt">&gt;</span>
+                            <input
+                                class="search-input"
+                                id="acc-search"
+                                placeholder="search email…"
+                                autocomplete="off"
+                                spellcheck="false"
+                            />
+                            <span
+                                class="search-count"
+                                id="acc-search-count"
+                            ></span>
+                        </div>
+                        <div class="section-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30px">#</th>
+                                        <th>email</th>
+                                        <th style="width: 50px">key</th>
+                                        <th style="width: 90px">expire</th>
+                                        <th style="width: 50px">quota</th>
+                                        <th style="width: 30px">⚠</th>
+                                        <th style="width: 60px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="acc-body">
+                                    <tr class="empty-row">
+                                        <td colspan="7">loading…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination">
+                            <button class="btn btn-sm" onclick="accPage(-1)">
+                                ‹ prev
+                            </button>
+                            <span class="page-info" id="acc-page-info"
+                                >— / —</span
+                            >
+                            <button class="btn btn-sm" onclick="accPage(1)">
+                                next ›
+                            </button>
+                            <span
+                                style="
+                                    margin-left: auto;
+                                    font-size: var(--fs-10);
+                                    color: var(--muted);
+                                "
+                                id="acc-total-info"
+                            ></span>
+                        </div>
+                    </div>
+
+                    <!-- PLAYGROUND -->
+                    <div class="tab-panel" id="panel-playground">
+                        <div
+                            class="section-head"
+                            style="border-top: 1px solid var(--border)"
+                        >
+                            <span class="section-title">playground</span>
+                            <div class="section-actions">
+                                <span
+                                    style="
+                                        font-size: var(--fs-9);
+                                        color: var(--muted);
+                                    "
+                                    id="pg-key-info"
+                                ></span>
+                                <button
+                                    class="btn btn-sm btn-ghost"
+                                    onclick="clearChat()"
+                                >
+                                    ✕ clear
+                                </button>
+                            </div>
+                        </div>
+                        <div
+                            style="
+                                padding: 10px 12px;
+                                border-bottom: 1px solid var(--border);
+                                flex-shrink: 0;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 7px;
+                            "
+                        >
+                            <div
+                                style="
+                                    display: flex;
+                                    gap: 8px;
+                                    align-items: center;
+                                "
+                            >
+                                <select
+                                    id="pg-provider"
+                                    class="zp-input"
+                                    style="
+                                        width: 80px;
+                                        flex-shrink: 0;
+                                        font-size: var(--fs-11);
+                                    "
+                                    onchange="pgProviderChanged()"
+                                >
+                                    <option value="cf">cf</option>
+                                    <option value="aiio">aiio</option>
+                                </select>
+                                <select
+                                    id="pg-type"
+                                    class="zp-input"
+                                    style="
+                                        width: 100px;
+                                        flex-shrink: 0;
+                                        font-size: var(--fs-11);
+                                    "
+                                    onchange="pgTypeChanged()"
+                                >
+                                    <option value="">all types</option>
+                                </select>
+                                <select
+                                    id="pg-model"
+                                    class="zp-input"
+                                    style="flex: 1; font-size: var(--fs-11)"
+                                    onchange="updatePgInfo()"
+                                >
+                                    <option value="">
+                                        — load models first —
+                                    </option>
+                                </select>
+                                <label
+                                    style="
+                                        font-size: var(--fs-9);
+                                        color: var(--text2);
+                                        white-space: nowrap;
+                                    "
+                                    >max tokens</label
+                                >
+                                <input
+                                    id="pg-max-tokens"
+                                    type="number"
+                                    value="512"
+                                    min="1"
+                                    max="4096"
+                                    class="zp-input"
+                                    style="width: 72px; font-size: var(--fs-11)"
+                                />
+                            </div>
+                            <textarea
+                                id="pg-system"
+                                class="zp-input"
+                                rows="1"
+                                style="
+                                    resize: vertical;
+                                    font-size: var(--fs-11);
+                                "
+                                placeholder="system prompt (optional)…"
+                            ></textarea>
+                            <div style="display: flex; gap: 8px">
+                                <textarea
+                                    id="pg-prompt"
+                                    class="zp-input"
+                                    rows="3"
+                                    style="
+                                        resize: vertical;
+                                        font-size: var(--fs-11);
+                                        flex: 1;
+                                    "
+                                    placeholder="user message… (ctrl+enter to send)"
+                                ></textarea>
+                                <button
+                                    class="btn btn-primary"
+                                    id="pg-run-btn"
+                                    onclick="pgRun()"
+                                    style="
+                                        align-self: flex-end;
+                                        padding: 8px 20px;
+                                    "
+                                >
+                                    ▶ run
+                                </button>
+                            </div>
+                            <div
+                                id="pg-cost"
+                                style="
+                                    font-size: var(--fs-9);
+                                    color: var(--muted);
+                                "
+                            >
+                                select a model
+                            </div>
+                            <div class="error-bar" id="pg-error"></div>
+                        </div>
+                        <div class="chat-area" id="pg-chat">
+                            <div
+                                style="
+                                    color: var(--muted);
+                                    font-size: var(--fs-11);
+                                    text-align: center;
+                                    padding: 24px;
+                                "
+                            >
+                                run a prompt to see results here
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TEST LAB -->
+                    <div class="tab-panel" id="panel-testlab">
+                        <div
+                            class="section-head"
+                            style="border-top: 1px solid var(--border)"
+                        >
+                            <span class="section-title">🧪 test lab</span>
+                            <div class="section-actions">
+                                <span
+                                    class="spinner hidden"
+                                    id="tl-spinner"
+                                ></span>
+                                <span
+                                    id="tl-job-info"
+                                    style="
+                                        font-size: var(--fs-10);
+                                        color: var(--muted);
+                                        font-family: var(--font-mono);
+                                    "
+                                ></span>
+                                <button
+                                    class="btn btn-primary btn-sm"
+                                    id="tl-run-btn"
+                                    onclick="tlRun()"
+                                >
+                                    ▶ run tests
+                                </button>
+                            </div>
+                        </div>
+                        <!-- prompts editor -->
+                        <div
+                            style="
+                                display: flex;
+                                gap: 10px;
+                                padding: 10px 12px;
+                                border-bottom: 1px solid var(--border);
+                                flex-shrink: 0;
+                            "
+                        >
+                            <div
+                                style="
+                                    flex: 1;
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 4px;
+                                "
+                            >
+                                <div
+                                    style="
+                                        display: flex;
+                                        justify-content: space-between;
+                                        align-items: center;
+                                    "
+                                >
+                                    <span class="sec-label">text prompt</span>
+                                    <button
+                                        class="btn btn-sm"
+                                        onclick="tlSavePrompt('text')"
+                                    >
+                                        save
+                                    </button>
+                                </div>
+                                <textarea
+                                    id="tl-text-prompt"
+                                    class="zp-input"
+                                    rows="4"
+                                    style="
+                                        resize: vertical;
+                                        font-size: var(--fs-11);
+                                    "
+                                    placeholder="loading…"
+                                ></textarea>
+                            </div>
+                            <div
+                                style="
+                                    flex: 1;
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 4px;
+                                "
+                            >
+                                <div
+                                    style="
+                                        display: flex;
+                                        justify-content: space-between;
+                                        align-items: center;
+                                    "
+                                >
+                                    <span class="sec-label">image prompt</span>
+                                    <button
+                                        class="btn btn-sm"
+                                        onclick="tlSavePrompt('image')"
+                                    >
+                                        save
+                                    </button>
+                                </div>
+                                <textarea
+                                    id="tl-image-prompt"
+                                    class="zp-input"
+                                    rows="4"
+                                    style="
+                                        resize: vertical;
+                                        font-size: var(--fs-11);
+                                    "
+                                    placeholder="loading…"
+                                ></textarea>
+                            </div>
+                        </div>
+                        <!-- model selector -->
+                        <div
+                            style="
+                                padding: 8px 12px;
+                                border-bottom: 1px solid var(--border);
+                                flex-shrink: 0;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 6px;
+                            "
+                        >
+                            <div
+                                style="
+                                    display: flex;
+                                    gap: 8px;
+                                    align-items: center;
+                                    flex-wrap: wrap;
+                                "
+                            >
+                                <span class="sec-label" style="margin: 0"
+                                    >filter:</span
+                                >
+                                <div
+                                    class="filter-group"
+                                    id="tl-type-filters"
+                                ></div>
+                                <div
+                                    style="
+                                        width: 1px;
+                                        height: 14px;
+                                        background: var(--border);
+                                    "
+                                ></div>
+                                <div
+                                    class="filter-group"
+                                    id="tl-prov-filters"
+                                ></div>
+                                <button
+                                    class="btn btn-sm btn-ghost"
+                                    onclick="tlSelectAll()"
+                                >
+                                    select all
+                                </button>
+                                <button
+                                    class="btn btn-sm btn-ghost"
+                                    onclick="tlClearSel()"
+                                >
+                                    clear
+                                </button>
+                                <span
+                                    id="tl-sel-count"
+                                    style="
+                                        font-size: var(--fs-10);
+                                        color: var(--muted);
+                                        font-family: var(--font-mono);
+                                        margin-left: auto;
+                                    "
+                                ></span>
+                            </div>
+                            <div
+                                id="tl-model-list"
+                                style="
+                                    display: flex;
+                                    flex-wrap: wrap;
+                                    gap: 4px;
+                                    max-height: 80px;
+                                    overflow-y: auto;
+                                "
+                            ></div>
+                        </div>
+                        <div
+                            class="error-bar"
+                            id="tl-error"
+                            style="margin: 6px 12px 0"
+                        ></div>
+                        <!-- results -->
+                        <div
+                            id="tl-results-area"
+                            style="flex: 1; overflow-y: auto; min-height: 0"
+                        >
+                            <div
+                                style="
+                                    color: var(--muted);
+                                    font-size: var(--fs-11);
+                                    text-align: center;
+                                    padding: 24px;
+                                "
+                            >
+                                run tests to see results
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.section -->
+            </div>
+            <!-- /.content -->
+        </div>
+        <!-- /.main -->
+
+        <div class="overlay" id="overlay" onclick="closeDetail()"></div>
+        <div class="detail" id="detail">
+            <div class="detail-head">
+                <span class="detail-title" id="d-name"></span>
+                <button class="btn btn-ghost btn-sm" onclick="closeDetail()">
+                    ✕
+                </button>
+            </div>
+            <div class="detail-body" id="d-body"></div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+
+        <script>
+            /* ── STATE ── */
+            let API_BASE =
+                localStorage.getItem("mr-base") || "http://localhost:8000";
+            let _theme = localStorage.getItem("mr-theme") || "dark";
+            let statsData = null;
+            let allModelsRaw = [];
+            let modelSort = { key: "avtime", dir: "asc" };
+            let modelFilters = {
+                provider: "all",
+                type: "all",
+                status: "all",
+                q: "",
+            };
+            let modelPage = 1;
+            const MODEL_PER_PAGE = 100;
+            let accPage_ = 1;
+            let accTotal = 0;
+            let accFilters = { has_problems: null, expired: null };
+            const ACC_PER_PAGE = 50;
+            let pgModels = { cf: [], aiio: [] };
+            let _chatHistory = [];
+
+            /* ── INIT ── */
+            document.documentElement.setAttribute("data-theme", _theme);
+            document.querySelectorAll("[data-theme-set]").forEach((b) =>
+                b.addEventListener("click", () => {
+                    _theme = b.dataset.themeSet;
+                    document.documentElement.setAttribute("data-theme", _theme);
+                    localStorage.setItem("mr-theme", _theme);
+                }),
+            );
+            document.getElementById("tb-base").textContent = API_BASE;
+            document
+                .getElementById("pg-prompt")
+                .addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" && e.ctrlKey) {
+                        e.preventDefault();
+                        pgRun();
+                    }
+                });
+            document
+                .getElementById("m-search")
+                .addEventListener("input", (e) => {
+                    modelFilters.q = e.target.value.toLowerCase();
+                    modelPage = 1;
+                    renderModels();
+                });
+
+            let _accTimer;
+            document
+                .getElementById("acc-search")
+                .addEventListener("input", () => {
+                    clearTimeout(_accTimer);
+                    _accTimer = setTimeout(() => {
+                        accPage_ = 1;
+                        loadAccounts();
+                    }, 350);
+                });
+
+            refreshAll();
+            setInterval(refreshHealth, 30000);
+
+            /* ── API ── */
+            async function api(path, opts = {}) {
+                const r = await fetch(API_BASE + path, opts);
+                if (!r.ok) {
+                    const j = await r.json().catch(() => ({}));
+                    throw new Error(j.detail || `HTTP ${r.status}`);
+                }
+                return r.json();
+            }
+
+            async function refreshAll() {
+                await Promise.allSettled([
+                    refreshHealth(),
+                    loadStats(),
+                    loadModels(),
+                    loadPgModels(),
+                ]);
+            }
+
+            /* ── HEALTH ── */
+            async function refreshHealth() {
+                try {
+                    const d = await api("/admin/health");
+                    document.getElementById("dot-health").className =
+                        "status-dot";
+                    document.getElementById("sb-health").textContent =
+                        `db ok · ${d.db}`;
+                    document.getElementById("sb-cf").textContent =
+                        `cf: ${d.cf_accounts}`;
+                    document.getElementById("sb-aiio").textContent =
+                        `aiio: ${d.aiio_accounts}`;
+                    document.getElementById("sb-models").textContent =
+                        `models ok: ${d.models_ok}`;
+                    document.getElementById("sb-time").textContent = new Date(
+                        d.time + "Z",
+                    ).toLocaleTimeString();
+                } catch (e) {
+                    document.getElementById("dot-health").className =
+                        "status-dot err";
+                    document.getElementById("sb-health").textContent =
+                        "api unreachable";
+                }
+            }
+
+            /* ── STATS ── */
+            async function loadStats() {
+                document
+                    .getElementById("stat-spinner")
+                    .classList.remove("hidden");
+                try {
+                    const d = (statsData = await api("/admin/stats"));
+                    const cf = d.accounts.cf,
+                        aiio = d.accounts.aiio;
+                    const byP = d.models.by_provider || [];
+                    const totalOk = byP.reduce((a, r) => a + (r.ok || 0), 0);
+                    const totalErr = byP.reduce(
+                        (a, r) => a + (r.error || 0),
+                        0,
+                    );
+                    document.getElementById("s-cf-total").textContent =
+                        cf.total;
+                    document.getElementById("s-cf-sub").textContent =
+                        `${cf.active} active · ${cf.expired} exp`;
+                    document.getElementById("s-aiio-total").textContent =
+                        aiio.total;
+                    document.getElementById("s-aiio-sub").textContent =
+                        `${aiio.active} active · ${aiio.expired} exp`;
+                    document.getElementById("s-ok").textContent = totalOk;
+                    document.getElementById("s-ok-sub").textContent =
+                        `of ${d.models.total} total`;
+                    document.getElementById("s-err").textContent = totalErr;
+                    document.getElementById("s-err-sub").textContent = totalErr
+                        ? "failing models"
+                        : "all clear";
+                } catch (e) {
+                    console.error("stats:", e);
+                } finally {
+                    document
+                        .getElementById("stat-spinner")
+                        .classList.add("hidden");
+                }
+            }
+
+            /* ── MODELS ── */
+            async function loadModels() {
+                try {
+                    const d = await api(
+                        "/admin/models?per_page=500&order_by=avtime&order_dir=asc",
+                    );
+                    allModelsRaw = d.models || [];
+                    renderModelTypeSummary();
+                    renderModels();
+                    buildModelFilters();
+                } catch (e) {
+                    showToast("models load failed: " + e.message, "err");
+                }
+            }
+
+            function renderModelTypeSummary() {
+                if (!statsData) return;
+                const byType = statsData.models.by_type || [];
+                const grid = document.getElementById("model-type-grid");
+                if (!byType.length) {
+                    grid.style.display = "none";
+                    return;
+                }
+                grid.style.display = "grid";
+                grid.innerHTML = byType
+                    .map((r) => {
+                        const pct = r.total
+                            ? Math.round((r.ok / r.total) * 100)
+                            : 0;
+                        const barColor =
+                            pct >= 80
+                                ? "var(--green)"
+                                : pct >= 40
+                                  ? "var(--yellow)"
+                                  : "var(--red)";
+                        return `<div class="model-type-card" onclick="setModelFilter('type','${r.type || ""}')">
+      <div class="model-type-head">
+        <span class="model-type-name">${r.type || "?"}</span>
+        <span class="chip ${r.provider === "cf" ? "chip-accent" : "chip-purple"}">${r.provider}</span>
+      </div>
+      <div class="model-type-bar"><div class="model-type-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <div class="model-type-stats">
+        <span style="color:var(--green)">${r.ok} ok</span>
+        ${r.error ? `<span style="color:var(--red)">${r.error} err</span>` : ""}
+        ${r.avg_avtime_ms ? `<span style="color:var(--muted)">${r.avg_avtime_ms}ms</span>` : ""}
+      </div>
+    </div>`;
+                    })
+                    .join("");
+            }
+
+            function renderModels() {
+                let data = [...allModelsRaw];
+                if (modelFilters.provider !== "all")
+                    data = data.filter(
+                        (r) => r.provider === modelFilters.provider,
+                    );
+                if (modelFilters.type !== "all")
+                    data = data.filter((r) => r.type === modelFilters.type);
+                if (modelFilters.status !== "all")
+                    data = data.filter((r) => r.status === modelFilters.status);
+                if (modelFilters.q)
+                    data = data.filter((r) =>
+                        r.model.toLowerCase().includes(modelFilters.q),
+                    );
+
+                data.sort((a, b) => {
+                    let av =
+                        a[modelSort.key] ??
+                        (modelSort.key === "avtime" ? 999999 : "");
+                    let bv =
+                        b[modelSort.key] ??
+                        (modelSort.key === "avtime" ? 999999 : "");
+                    if (typeof av === "string") {
+                        av = av.toLowerCase();
+                        bv = bv.toLowerCase();
+                    }
+                    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+                    return modelSort.dir === "asc" ? cmp : -cmp;
+                });
+
+                const total = data.length;
+                const pages = Math.max(1, Math.ceil(total / MODEL_PER_PAGE));
+                if (modelPage > pages) modelPage = pages;
+                const slice = data.slice(
+                    (modelPage - 1) * MODEL_PER_PAGE,
+                    modelPage * MODEL_PER_PAGE,
+                );
+                const maxTime = Math.max(
+                    ...allModelsRaw
+                        .filter((r) => r.avtime)
+                        .map((r) => r.avtime),
+                    1,
+                );
+
+                document.getElementById("m-count").textContent = total;
+                document.getElementById("m-search-count").textContent =
+                    `${total} / ${allModelsRaw.length}`;
+                document.getElementById("m-page-info").textContent =
+                    `${modelPage} / ${pages}`;
+                document.getElementById("m-total-info").textContent =
+                    `${total} rows`;
+
+                const tbody = document.getElementById("m-body");
+                if (!slice.length) {
+                    tbody.innerHTML =
+                        '<tr class="empty-row"><td colspan="6">no models match</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = slice
+                    .map((r) => {
+                        const prov =
+                            r.provider === "cf"
+                                ? `<span class="chip chip-accent">cf</span>`
+                                : `<span class="chip chip-purple">aiio</span>`;
+                        const sc =
+                            r.status === "ok"
+                                ? "chip-green"
+                                : r.status === "error"
+                                  ? "chip-red"
+                                  : "";
+                        const st = `<span class="chip ${sc}">${r.status}</span>`;
+                        const lat = r.avtime
+                            ? `<span style="font-family:var(--font-mono);font-size:var(--fs-11)">${r.avtime}ms</span><div class="bar-wrap"><div class="bar-fill" style="width:${Math.min(100, Math.round((r.avtime / maxTime) * 100))}%;background:${r.avtime < 1000 ? "var(--green)" : r.avtime < 3000 ? "var(--yellow)" : "var(--red)"}"></div></div>`
+                            : `<span style="color:var(--muted)">—</span>`;
+                        const errText = r.error
+                            ? `<span style="font-size:var(--fs-10);color:var(--red);font-family:var(--font-mono)">${escHtml(r.error.substring(0, 60))}${r.error.length > 60 ? "…" : ""}</span>`
+                            : "";
+                        const modelShort = r.model
+                            .replace("@cf/", "")
+                            .replace("@aiio/", "");
+                        return `<tr class="clickable" onclick="openModelDetail(${r.id})">
+      <td>${prov}</td>
+      <td><span class="ptype">${r.type || "—"}</span></td>
+      <td style="font-family:var(--font-mono);font-size:var(--fs-11);color:var(--text-hi)" title="${escHtml(r.model)}">${escHtml(modelShort)}</td>
+      <td>${st}</td>
+      <td style="white-space:nowrap">${lat}</td>
+      <td>${errText}</td>
+    </tr>`;
+                    })
+                    .join("");
+            }
+
+            function sortModels(key) {
+                if (modelSort.key === key)
+                    modelSort.dir = modelSort.dir === "asc" ? "desc" : "asc";
+                else {
+                    modelSort.key = key;
+                    modelSort.dir = "asc";
+                }
+                renderModels();
+            }
+            function mPage(d) {
+                const pages = Math.max(
+                    1,
+                    Math.ceil(
+                        parseInt(
+                            document.getElementById("m-count").textContent || 0,
+                        ) / MODEL_PER_PAGE,
+                    ),
+                );
+                modelPage = Math.max(1, Math.min(pages, modelPage + d));
+                renderModels();
+            }
+            function setModelFilter(key, val) {
+                modelFilters[key] = val;
+                document
+                    .querySelectorAll(`[data-mfilter="${key}"]`)
+                    .forEach((b) =>
+                        b.classList.toggle("active", b.dataset.val === val),
+                    );
+                modelPage = 1;
+                renderModels();
+            }
+            function buildModelFilters() {
+                const providers = [
+                    ...new Set(allModelsRaw.map((r) => r.provider)),
+                ].sort();
+                const types = [
+                    ...new Set(allModelsRaw.map((r) => r.type).filter(Boolean)),
+                ].sort();
+                document.getElementById("sf-title").textContent =
+                    "model filters";
+                document.getElementById("sf-body").innerHTML = `
+    <div>
+      <div class="sec-label">provider</div>
+      <div class="filter-group">
+        <button class="filter-btn active" data-mfilter="provider" data-val="all" onclick="setModelFilter('provider','all')">all</button>
+        ${providers.map((p) => `<button class="filter-btn" data-mfilter="provider" data-val="${p}" onclick="setModelFilter('provider','${p}')">${p}</button>`).join("")}
+      </div>
+    </div>
+    <div>
+      <div class="sec-label">type</div>
+      <div class="filter-group">
+        <button class="filter-btn active" data-mfilter="type" data-val="all" onclick="setModelFilter('type','all')">all</button>
+        ${types.map((t) => `<button class="filter-btn" data-mfilter="type" data-val="${t}" onclick="setModelFilter('type','${t}')">${t}</button>`).join("")}
+      </div>
+    </div>
+    <div>
+      <div class="sec-label">status</div>
+      <div class="filter-group">
+        <button class="filter-btn active" data-mfilter="status" data-val="all" onclick="setModelFilter('status','all')">all</button>
+        <button class="filter-btn f-green" data-mfilter="status" data-val="ok" onclick="setModelFilter('status','ok')">ok</button>
+        <button class="filter-btn f-red" data-mfilter="status" data-val="error" onclick="setModelFilter('status','error')">error</button>
+        <button class="filter-btn" data-mfilter="status" data-val="skip" onclick="setModelFilter('status','skip')">skip</button>
+      </div>
+    </div>`;
+            }
+            function openModelDetail(id) {
+                const r = allModelsRaw.find((x) => x.id === id);
+                if (!r) return;
+                document.getElementById("d-name").textContent = r.model
+                    .replace("@cf/", "")
+                    .replace("@aiio/", "");
+                document.getElementById("d-body").innerHTML = `
+    <div>
+      <div class="sec-label">identity</div>
+      <div class="detail-row"><span class="detail-key">provider</span><span class="detail-val">${r.provider}</span></div>
+      <div class="detail-row"><span class="detail-key">type</span><span class="detail-val">${r.type || "—"}</span></div>
+      <div class="detail-row"><span class="detail-key">model</span><span class="detail-val" style="font-size:var(--fs-10)">${escHtml(r.model)}</span></div>
+      <div class="detail-row"><span class="detail-key">status</span><span class="detail-val"><span class="chip ${r.status === "ok" ? "chip-green" : r.status === "error" ? "chip-red" : ""}">${r.status}</span></span></div>
+      <div class="detail-row"><span class="detail-key">latency</span><span class="detail-val">${r.avtime ? r.avtime + "ms" : "—"}</span></div>
+    </div>
+    ${
+        r.error
+            ? `<div>
+      <div class="sec-label">error</div>
+      <div style="font-family:var(--font-mono);font-size:var(--fs-10);color:var(--red);background:var(--bg);border:1px solid color-mix(in srgb,var(--red) 25%,transparent);border-radius:var(--radius);padding:8px 10px;white-space:pre-wrap;line-height:1.5">${escHtml(r.error)}</div>
+    </div>`
+            : ""
+    }
+    ${
+        r.status === "ok"
+            ? `<div>
+      <button class="btn btn-primary" style="width:100%" onclick="pgUseModel('${r.provider}','${escHtml(r.model)}')">▶ test in playground</button>
+    </div>`
+            : ""
+    }`;
+                openDetail();
+            }
+
+            /* ── ACCOUNTS ── */
+            async function loadAccounts() {
+                const prov = document.getElementById("acc-provider").value;
+                const search = document
+                    .getElementById("acc-search")
+                    .value.trim();
+                const params = new URLSearchParams({
+                    page: accPage_,
+                    per_page: ACC_PER_PAGE,
+                });
+                if (search) params.set("search", search);
+                if (accFilters.has_problems !== null)
+                    params.set("has_problems", accFilters.has_problems);
+                if (accFilters.expired !== null)
+                    params.set("expired", accFilters.expired);
+                try {
+                    const d = await api(`/admin/accounts/${prov}?${params}`);
+                    accTotal = d.total;
+                    document.getElementById("acc-count").textContent = d.total;
+                    document.getElementById("acc-page-info").textContent =
+                        `${d.page} / ${d.pages}`;
+                    document.getElementById("acc-total-info").textContent =
+                        `${d.total} total`;
+                    document.getElementById("acc-search-count").textContent =
+                        `${d.accounts.length} / ${d.total}`;
+                    renderAccounts(d.accounts, prov);
+                } catch (e) {
+                    showToast("accounts: " + e.message, "err");
+                }
+            }
+            function renderAccounts(rows, prov) {
+                const tbody = document.getElementById("acc-body");
+                if (!rows.length) {
+                    tbody.innerHTML =
+                        '<tr class="empty-row"><td colspan="7">no accounts</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = rows
+                    .map((r) => {
+                        const hasKey = r.api_key === "***";
+                        const keySt = hasKey
+                            ? `<span class="chip chip-green">✓</span>`
+                            : `<span class="chip chip-red">✗</span>`;
+                        let expSt = '<span style="color:var(--muted)">—</span>';
+                        if (r.expire) {
+                            const exp = new Date(r.expire);
+                            const expired = exp < new Date();
+                            expSt = `<span class="chip ${expired ? "chip-red" : "chip-green"}" title="${r.expire}">${expired ? "exp" : fmtDateShort(r.expire)}</span>`;
+                        }
+                        const hasQuota = r.ai_quota && r.ai_quota !== "null";
+                        const prob = r.problems
+                            ? `<span style="color:var(--red);font-size:var(--fs-14)" title="${escHtml(r.problems)}">⚠</span>`
+                            : "";
+                        return `<tr class="clickable" onclick="openAccountDetail('${prov}',${r.id})">
+      <td style="font-family:var(--font-mono);font-size:var(--fs-10);color:var(--muted)">${r.id}</td>
+      <td style="font-family:var(--font-mono);font-size:var(--fs-11);color:var(--text-hi)">${escHtml(r.email || "—")}</td>
+      <td style="text-align:center">${keySt}</td>
+      <td>${expSt}</td>
+      <td style="text-align:center">${hasQuota ? `<span class="chip chip-accent">json</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td style="text-align:center">${prob}</td>
+      <td><button class="btn btn-sm" onclick="event.stopPropagation();openAccountDetail('${prov}',${r.id})">detail</button></td>
+    </tr>`;
+                    })
+                    .join("");
+            }
+            function accPage(d) {
+                const pages = Math.max(1, Math.ceil(accTotal / ACC_PER_PAGE));
+                accPage_ = Math.max(1, Math.min(pages, accPage_ + d));
+                loadAccounts();
+            }
+            function buildAccFilters() {
+                document.getElementById("sf-title").textContent =
+                    "account filters";
+                document.getElementById("sf-body").innerHTML = `
+    <div>
+      <div class="sec-label">problems</div>
+      <div class="filter-group">
+        <button class="filter-btn active" onclick="setAccFilter('has_problems',null,this)">all</button>
+        <button class="filter-btn f-red" onclick="setAccFilter('has_problems',true,this)">has problems</button>
+        <button class="filter-btn f-green" onclick="setAccFilter('has_problems',false,this)">clean</button>
+      </div>
+    </div>
+    <div>
+      <div class="sec-label">expiry</div>
+      <div class="filter-group">
+        <button class="filter-btn active" onclick="setAccFilter('expired',null,this)">all</button>
+        <button class="filter-btn f-red" onclick="setAccFilter('expired',true,this)">expired</button>
+        <button class="filter-btn f-green" onclick="setAccFilter('expired',false,this)">active</button>
+      </div>
+    </div>`;
+            }
+            function setAccFilter(key, val, btn) {
+                accFilters[key] = val;
+                btn.closest(".filter-group")
+                    .querySelectorAll(".filter-btn")
+                    .forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                accPage_ = 1;
+                loadAccounts();
+            }
+            async function openAccountDetail(prov, id) {
+                document.getElementById("d-name").textContent =
+                    `${prov} #${id}`;
+                document.getElementById("d-body").innerHTML =
+                    '<div style="text-align:center;padding:20px"><span class="spinner"></span></div>';
+                openDetail();
+                try {
+                    const r = await api(`/admin/accounts/${prov}/${id}`);
+                    const skip = ["password", "otp_secret", "recovery"];
+                    const rows = Object.entries(r)
+                        .filter(([k]) => !skip.includes(k))
+                        .map(([k, v]) => {
+                            const val =
+                                v === null || v === undefined
+                                    ? '<span style="color:var(--muted)">null</span>'
+                                    : v === "***"
+                                      ? '<span class="chip chip-green">set</span>'
+                                      : typeof v === "object"
+                                        ? `<span style="font-size:var(--fs-9)">${escHtml(JSON.stringify(v).substring(0, 80))}</span>`
+                                        : escHtml(String(v));
+                            const isProb = k === "problems" && v;
+                            return `<div class="detail-row">
+        <span class="detail-key" ${isProb ? 'style="color:var(--red)"' : ""}>${k}</span>
+        <span class="detail-val" style="font-size:var(--fs-10)">${val}</span>
+      </div>`;
+                        })
+                        .join("");
+
+                    const cfExtra =
+                        prov === "cf"
+                            ? `
+      <div>
+        <div class="sec-label" style="display:flex;align-items:center;justify-content:space-between">
+          <span>zones</span>
+          <button class="btn btn-sm" onclick="loadAccZones(${id},this)">load</button>
+        </div>
+        <div id="acc-zones-area" style="font-size:var(--fs-11);color:var(--muted);padding:4px 0">— not loaded —</div>
+      </div>
+      <div>
+        <div class="sec-label" style="display:flex;align-items:center;justify-content:space-between">
+          <span>workers</span>
+          <button class="btn btn-sm" onclick="loadAccWorkers(${id},this)">load</button>
+        </div>
+        <div id="acc-workers-area" style="font-size:var(--fs-11);color:var(--muted);padding:4px 0">— not loaded —</div>
+      </div>`
+                            : "";
+
+                    document.getElementById("d-body").innerHTML = `
+      <div>${rows}</div>
+      ${cfExtra}
+      ${r.problems ? `<div><button class="btn btn-danger btn-sm" style="width:100%" onclick="clearProblems('${prov}',${id})">clear problems</button></div>` : ""}`;
+                } catch (e) {
+                    document.getElementById("d-body").innerHTML =
+                        `<div style="color:var(--red);font-size:var(--fs-11)">error: ${escHtml(e.message)}</div>`;
+                }
+            }
+            async function loadAccZones(id, btn) {
+                btn.disabled = true;
+                btn.textContent = "…";
+                const area = document.getElementById("acc-zones-area");
+                area.innerHTML =
+                    '<span style="color:var(--muted)">loading…</span>';
+                try {
+                    const d = await api(`/admin/accounts/cf/${id}/zones`);
+                    const zones = d.zones || [];
+                    if (!zones.length) {
+                        area.innerHTML =
+                            '<span style="color:var(--muted)">no zones</span>';
+                        return;
+                    }
+                    area.innerHTML = `
+      <div style="font-size:var(--fs-9);color:var(--muted);margin-bottom:4px">${d.total} total</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="font-size:var(--fs-9);color:var(--muted)">
+          <th style="text-align:left;padding:2px 4px">domain</th>
+          <th style="text-align:left;padding:2px 4px">status</th>
+          <th style="text-align:left;padding:2px 4px">plan</th>
+        </tr></thead>
+        <tbody>${zones
+            .map((z) => {
+                const sc =
+                    z.status === "active"
+                        ? "chip-green"
+                        : z.status === "pending"
+                          ? "chip-yellow"
+                          : "chip-red";
+                return `<tr style="border-top:1px solid var(--border)">
+            <td style="padding:3px 4px;font-family:var(--font-mono);font-size:var(--fs-10);color:var(--text-hi)">${escHtml(z.name)}</td>
+            <td style="padding:3px 4px"><span class="chip ${sc}">${z.paused ? "paused" : z.status}</span></td>
+            <td style="padding:3px 4px;font-size:var(--fs-9);color:var(--text2)">${z.plan ? z.plan.replace(" Plan", "") : "—"}</td>
+          </tr>`;
+            })
+            .join("")}</tbody>
+      </table>`;
+                } catch (e) {
+                    area.innerHTML = `<span style="color:var(--red);font-size:var(--fs-11)">${escHtml(e.message)}</span>`;
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "load";
+                }
+            }
+            async function loadAccWorkers(id, btn) {
+                btn.disabled = true;
+                btn.textContent = "…";
+                const area = document.getElementById("acc-workers-area");
+                area.innerHTML =
+                    '<span style="color:var(--muted)">loading…</span>';
+                try {
+                    const d = await api(`/admin/accounts/cf/${id}/workers`);
+                    const workers = d.workers || [];
+                    if (!workers.length) {
+                        area.innerHTML =
+                            '<span style="color:var(--muted)">no workers</span>';
+                        return;
+                    }
+                    area.innerHTML = `
+      <div style="font-size:var(--fs-9);color:var(--muted);margin-bottom:4px">${d.total} total</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="font-size:var(--fs-9);color:var(--muted)">
+          <th style="text-align:left;padding:2px 4px">name</th>
+          <th style="text-align:left;padding:2px 4px">model</th>
+          <th style="text-align:left;padding:2px 4px">modified</th>
+        </tr></thead>
+        <tbody>${workers
+            .map(
+                (w) => `<tr style="border-top:1px solid var(--border)">
+          <td style="padding:3px 4px;font-family:var(--font-mono);font-size:var(--fs-10);color:var(--text-hi)">${escHtml(w.id)}</td>
+          <td style="padding:3px 4px;font-size:var(--fs-9);color:var(--text2)">${w.usage_model || "—"}</td>
+          <td style="padding:3px 4px;font-family:var(--font-mono);font-size:var(--fs-9);color:var(--muted)">${w.modified_on ? new Date(w.modified_on).toLocaleDateString() : "—"}</td>
+        </tr>`,
+            )
+            .join("")}</tbody>
+      </table>`;
+                } catch (e) {
+                    area.innerHTML = `<span style="color:var(--red);font-size:var(--fs-11)">${escHtml(e.message)}</span>`;
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "load";
+                }
+            }
+            async function clearProblems(prov, id) {
+                try {
+                    await api(`/admin/accounts/${prov}/${id}/problems`, {
+                        method: "DELETE",
+                    });
+                    showToast("problems cleared", "ok");
+                    closeDetail();
+                    loadAccounts();
+                } catch (e) {
+                    showToast("error: " + e.message, "err");
+                }
+            }
+
+            /* ── PLAYGROUND ── */
+            async function loadPgModels() {
+                try {
+                    const d = await api("/admin/models/available");
+                    pgModels = { cf: [], aiio: [] };
+                    const prov = d.providers || {};
+                    for (const [p, types] of Object.entries(prov)) {
+                        pgModels[p] = [];
+                        for (const [t, models] of Object.entries(types)) {
+                            pgModels[p].push(
+                                ...models.map((m) => ({ ...m, type: t })),
+                            );
+                        }
+                    }
+                    pgProviderChanged();
+                } catch (e) {
+                    console.error("pg models:", e);
+                }
+            }
+            function pgProviderChanged() {
+                const prov = document.getElementById("pg-provider").value;
+                const models = pgModels[prov] || [];
+                // populate type filter
+                const types = [
+                    ...new Set(models.map((m) => m.type).filter(Boolean)),
+                ].sort();
+                const typeSel = document.getElementById("pg-type");
+                typeSel.innerHTML =
+                    '<option value="">all types</option>' +
+                    types
+                        .map((t) => `<option value="${t}">${t}</option>`)
+                        .join("");
+                pgTypeChanged();
+            }
+            function pgTypeChanged() {
+                const prov = document.getElementById("pg-provider").value;
+                const type = document.getElementById("pg-type").value;
+                const models = pgModels[prov] || [];
+                const filtered = type
+                    ? models.filter((m) => m.type === type)
+                    : models;
+                const sel = document.getElementById("pg-model");
+                sel.innerHTML = filtered.length
+                    ? filtered
+                          .map(
+                              (m) =>
+                                  `<option value="${escHtml(m.model)}">${escHtml(m.model)}  [${m.avtime_ms || "?"}ms]</option>`,
+                          )
+                          .join("")
+                    : '<option value="">— no models available —</option>';
+                updatePgInfo();
+            }
+            function updatePgInfo() {
+                const prov = document.getElementById("pg-provider").value;
+                const model = document.getElementById("pg-model").value;
+                document.getElementById("pg-cost").textContent = model
+                    ? `provider: ${prov}  ·  ${model}`
+                    : "select a model";
+                document.getElementById("pg-key-info").textContent =
+                    `random key · ${prov}`;
+            }
+            async function pgRun() {
+                const prov = document.getElementById("pg-provider").value;
+                const model = document.getElementById("pg-model").value;
+                const type = document.getElementById("pg-type").value;
+                const prompt = document
+                    .getElementById("pg-prompt")
+                    .value.trim();
+                const system = document
+                    .getElementById("pg-system")
+                    .value.trim();
+                const maxTok =
+                    parseInt(document.getElementById("pg-max-tokens").value) ||
+                    512;
+                const errEl = document.getElementById("pg-error");
+                errEl.classList.remove("show");
+                if (!model) {
+                    errEl.textContent = "select a model";
+                    errEl.classList.add("show");
+                    return;
+                }
+                if (!prompt) {
+                    errEl.textContent = "enter a prompt";
+                    errEl.classList.add("show");
+                    return;
+                }
+
+                const isImage = type === "image";
+
+                const btn = document.getElementById("pg-run-btn");
+                btn.disabled = true;
+                btn.textContent = "…";
+
+                if (!isImage) {
+                    _chatHistory.push({ role: "user", content: prompt });
+                    renderChat();
+                }
+                document.getElementById("pg-prompt").value = "";
+
+                const typingId = "t" + Date.now();
+                const typingEl = document.createElement("div");
+                typingEl.id = typingId;
+                typingEl.style.cssText =
+                    "color:var(--muted);font-size:var(--fs-11);padding:4px 12px;font-family:var(--font-mono)";
+                typingEl.textContent = isImage
+                    ? "generating image…"
+                    : "thinking…";
+                document.getElementById("pg-chat").appendChild(typingEl);
+                document.getElementById("pg-chat").scrollTop = 9999;
+
+                const t0 = performance.now();
+                try {
+                    const msgs = system
+                        ? [
+                              { role: "system", content: system },
+                              ...(isImage
+                                  ? [{ role: "user", content: prompt }]
+                                  : _chatHistory),
+                          ]
+                        : [
+                              ...(isImage
+                                  ? [{ role: "user", content: prompt }]
+                                  : _chatHistory),
+                          ];
+                    const d = await api("/admin/playground", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            provider: prov,
+                            model,
+                            messages: msgs,
+                            max_tokens: maxTok,
+                            model_type: type || undefined,
+                        }),
+                    });
+                    document.getElementById(typingId)?.remove();
+                    const elapsed = Math.round(performance.now() - t0);
+
+                    if (isImage && d.image_b64) {
+                        const byteChars = atob(d.image_b64);
+                        const byteArr = new Uint8Array(byteChars.length);
+                        for (let i = 0; i < byteChars.length; i++)
+                            byteArr[i] = byteChars.charCodeAt(i);
+                        const blob = new Blob([byteArr], { type: "image/png" });
+                        const url = URL.createObjectURL(blob);
+                        const area = document.getElementById("pg-chat");
+                        area.innerHTML = "";
+                        const img = document.createElement("img");
+                        img.src = url;
+                        img.alt = "generated";
+                        img.style.cssText =
+                            "max-width:100%;max-height:560px;display:block;margin:12px auto;border-radius:4px";
+                        const meta = document.createElement("div");
+                        meta.className = "chat-meta";
+                        meta.innerHTML = `<span>${d.latency_ms || elapsed}ms</span><span>${model}</span><a href="${url}" download="cf-image.png" class="btn btn-sm" style="margin-left:auto">⬇ download</a>`;
+                        area.append(img, meta);
+                    } else {
+                        _chatHistory.push({
+                            role: "assistant",
+                            content: d.response || "",
+                        });
+                        renderChat();
+                        const meta = document.createElement("div");
+                        meta.className = "chat-meta";
+                        meta.innerHTML = `<span>${d.latency_ms || elapsed}ms</span>${d.usage ? `<span>in:${d.usage.prompt_tokens || "?"} out:${d.usage.completion_tokens || "?"}</span>` : ""}<span>key #${d.key_id || "?"}</span>`;
+                        document.getElementById("pg-chat").appendChild(meta);
+                    }
+                    document.getElementById("pg-chat").scrollTop = 9999;
+                } catch (e) {
+                    document.getElementById(typingId)?.remove();
+                    if (!isImage) _chatHistory.pop();
+                    renderChat();
+                    errEl.textContent = e.message;
+                    errEl.classList.add("show");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "▶ run";
+                }
+            }
+            function renderChat() {
+                const area = document.getElementById("pg-chat");
+                if (!_chatHistory.length) {
+                    area.innerHTML =
+                        '<div style="color:var(--muted);font-size:var(--fs-11);text-align:center;padding:24px">run a prompt to see results here</div>';
+                    return;
+                }
+                area.innerHTML = "";
+                for (const msg of _chatHistory) {
+                    const wrap = document.createElement("div");
+                    wrap.className = `chat-bubble-wrap ${msg.role}`;
+                    const role = document.createElement("div");
+                    role.className = "chat-role";
+                    role.textContent =
+                        msg.role === "user" ? "you" : "assistant";
+                    const bubble = document.createElement("div");
+                    bubble.className = `chat-bubble ${msg.role}`;
+                    bubble.textContent = msg.content;
+                    wrap.append(role, bubble);
+                    area.appendChild(wrap);
+                }
+                area.scrollTop = 9999;
+            }
+            function clearChat() {
+                _chatHistory = [];
+                renderChat();
+                document.getElementById("pg-error").classList.remove("show");
+            }
+            function pgUseModel(prov, model) {
+                switchTab(
+                    "playground",
+                    document.querySelector('[data-tab="playground"]'),
+                );
+                document.getElementById("pg-provider").value = prov;
+                pgProviderChanged();
+                // find model type and set filter
+                const found = (pgModels[prov] || []).find(
+                    (m) => m.model === model,
+                );
+                if (found?.type) {
+                    document.getElementById("pg-type").value = found.type;
+                    pgTypeChanged();
+                }
+                for (const opt of document.getElementById("pg-model").options) {
+                    if (opt.value === model) {
+                        opt.selected = true;
+                        break;
+                    }
+                }
+                updatePgInfo();
+                closeDetail();
+            }
+
+            /* ── TAB SWITCH ── */
+            function switchTab(tab, btn) {
+                if (!btn) btn = document.querySelector(`[data-tab="${tab}"]`);
+                document
+                    .querySelectorAll(".tab")
+                    .forEach((b) => b.classList.remove("active"));
+                btn.classList.add("active");
+                document
+                    .querySelectorAll(".tab-panel")
+                    .forEach((p) => p.classList.remove("active"));
+                document.getElementById(`panel-${tab}`).classList.add("active");
+                if (tab === "accounts") {
+                    buildAccFilters();
+                    loadAccounts();
+                } else if (tab === "models") {
+                    buildModelFilters();
+                } else if (tab === "playground") {
+                    document.getElementById("sf-title").textContent = "filters";
+                    document.getElementById("sf-body").innerHTML =
+                        '<div style="color:var(--muted);font-size:var(--fs-11)">no filters for playground</div>';
+                    updatePgInfo();
+                } else if (tab === "testlab") {
+                    document.getElementById("sf-title").textContent = "filters";
+                    document.getElementById("sf-body").innerHTML =
+                        '<div style="color:var(--muted);font-size:var(--fs-11)">use model chips above</div>';
+                    tlInit();
+                }
+            }
+
+            /* ── DETAIL ── */
+            function openDetail() {
+                document.getElementById("detail").classList.add("open");
+                document.getElementById("overlay").classList.add("show");
+            }
+            function closeDetail() {
+                document.getElementById("detail").classList.remove("open");
+                document.getElementById("overlay").classList.remove("show");
+            }
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeDetail();
+            });
+
+            /* ── EDIT BASE ── */
+            function editBase() {
+                const v = prompt("API base URL:", API_BASE);
+                if (!v) return;
+                API_BASE = v.replace(/\/$/, "");
+                localStorage.setItem("mr-base", API_BASE);
+                document.getElementById("tb-base").textContent = API_BASE;
+                refreshAll();
+            }
+
+            /* ── TOAST ── */
+            let _toastTimer;
+            function showToast(msg, type = "ok") {
+                const el = document.getElementById("toast");
+                el.textContent = msg;
+                el.className = `toast toast-${type} show`;
+                clearTimeout(_toastTimer);
+                _toastTimer = setTimeout(
+                    () => el.classList.remove("show"),
+                    3000,
+                );
+            }
+
+            /* ── TEST LAB ── */
+            let _tlSelectedModels = new Set();
+            let _tlAllModels = [];
+            let _tlJobId = null;
+            let _tlPollTimer = null;
+            let _tlTypeFilter = "all";
+            let _tlProvFilter = "all";
+
+            async function tlInit() {
+                await Promise.all([tlLoadPrompts(), tlLoadModels()]);
+            }
+
+            async function tlLoadPrompts() {
+                try {
+                    const d = await api("/admin/prompts");
+                    document.getElementById("tl-text-prompt").value =
+                        d.text.content;
+                    document.getElementById("tl-image-prompt").value =
+                        d.image.content;
+                } catch (e) {
+                    showToast("prompts load failed: " + e.message, "err");
+                }
+            }
+
+            async function tlSavePrompt(type) {
+                const content = document.getElementById(
+                    `tl-${type}-prompt`,
+                ).value;
+                try {
+                    await api("/admin/prompts", {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ type, content }),
+                    });
+                    showToast(`${type} prompt saved`, "ok");
+                } catch (e) {
+                    showToast("save failed: " + e.message, "err");
+                }
+            }
+
+            async function tlLoadModels() {
+                try {
+                    const d = await api(
+                        "/admin/models?per_page=500&order_by=model&order_dir=asc",
+                    );
+                    _tlAllModels = (d.models || []).filter(
+                        (m) => m.status !== "skip",
+                    );
+                    tlRenderFilters();
+                    tlRenderModelList();
+                } catch (e) {
+                    showToast("tl models load failed: " + e.message, "err");
+                }
+            }
+
+            function tlRenderFilters() {
+                const types = [
+                    "all",
+                    ...new Set(
+                        _tlAllModels.map((m) => m.type).filter(Boolean),
+                    ).values(),
+                ].sort((a, b) =>
+                    a === "all" ? -1 : b === "all" ? 1 : a.localeCompare(b),
+                );
+                const provs = [
+                    "all",
+                    ...new Set(_tlAllModels.map((m) => m.provider)).values(),
+                ];
+                document.getElementById("tl-type-filters").innerHTML = types
+                    .map(
+                        (t) =>
+                            `<button class="filter-btn${_tlTypeFilter === t ? " active" : ""}" onclick="tlSetType('${t}')">${t}</button>`,
+                    )
+                    .join("");
+                document.getElementById("tl-prov-filters").innerHTML = provs
+                    .map(
+                        (p) =>
+                            `<button class="filter-btn${_tlProvFilter === p ? " active" : ""}" onclick="tlSetProv('${p}')">${p}</button>`,
+                    )
+                    .join("");
+            }
+
+            function tlSetType(t) {
+                _tlTypeFilter = t;
+                tlRenderFilters();
+                tlRenderModelList();
+            }
+            function tlSetProv(p) {
+                _tlProvFilter = p;
+                tlRenderFilters();
+                tlRenderModelList();
+            }
+
+            function tlFilteredModels() {
+                return _tlAllModels.filter((m) => {
+                    if (_tlTypeFilter !== "all" && m.type !== _tlTypeFilter)
+                        return false;
+                    if (_tlProvFilter !== "all" && m.provider !== _tlProvFilter)
+                        return false;
+                    return true;
+                });
+            }
+
+            function tlRenderModelList() {
+                const models = tlFilteredModels();
+                const container = document.getElementById("tl-model-list");
+                container.innerHTML = models
+                    .map((m) => {
+                        const sel = _tlSelectedModels.has(m.model);
+                        const sc =
+                            m.status === "ok"
+                                ? "chip-green"
+                                : m.status === "error"
+                                  ? "chip-red"
+                                  : "";
+                        const short = m.model
+                            .replace("@cf/", "")
+                            .replace("@aiio/", "");
+                        return `<button class="filter-btn${sel ? " active" : ""}" style="font-family:var(--font-mono);font-size:var(--fs-9)" onclick="tlToggleModel('${escHtml(m.model)}')" title="${escHtml(m.model)}">
+                        <span class="chip ${sc}" style="padding:1px 4px;font-size:8px">${m.status}</span> ${escHtml(short)}
+                    </button>`;
+                    })
+                    .join("");
+                document.getElementById("tl-sel-count").textContent =
+                    `${_tlSelectedModels.size} selected`;
+            }
+
+            function tlToggleModel(model) {
+                if (_tlSelectedModels.has(model))
+                    _tlSelectedModels.delete(model);
+                else _tlSelectedModels.add(model);
+                tlRenderModelList();
+            }
+
+            function tlSelectAll() {
+                tlFilteredModels().forEach((m) =>
+                    _tlSelectedModels.add(m.model),
+                );
+                tlRenderModelList();
+            }
+
+            function tlClearSel() {
+                _tlSelectedModels.clear();
+                tlRenderModelList();
+            }
+
+            async function tlRun() {
+                const errEl = document.getElementById("tl-error");
+                errEl.classList.remove("show");
+                if (_tlSelectedModels.size === 0) {
+                    errEl.textContent = "select at least one model";
+                    errEl.classList.add("show");
+                    return;
+                }
+                const btn = document.getElementById("tl-run-btn");
+                btn.disabled = true;
+                document
+                    .getElementById("tl-spinner")
+                    .classList.remove("hidden");
+                document.getElementById("tl-results-area").innerHTML =
+                    '<div style="color:var(--muted);font-size:var(--fs-11);text-align:center;padding:24px">running…</div>';
+
+                try {
+                    const d = await api("/admin/test/run", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            models: [..._tlSelectedModels],
+                        }),
+                    });
+                    _tlJobId = d.job_id;
+                    document.getElementById("tl-job-info").textContent =
+                        `job ${d.job_id} · 0/${d.total}`;
+                    _tlPollTimer = setInterval(() => tlPoll(), 1500);
+                } catch (e) {
+                    errEl.textContent = e.message;
+                    errEl.classList.add("show");
+                    btn.disabled = false;
+                    document
+                        .getElementById("tl-spinner")
+                        .classList.add("hidden");
+                }
+            }
+
+            async function tlPoll() {
+                if (!_tlJobId) return;
+                try {
+                    const d = await api(`/admin/test/status/${_tlJobId}`);
+                    document.getElementById("tl-job-info").textContent =
+                        `job ${_tlJobId} · ${d.done}/${d.total} · ${d.status}`;
+                    tlRenderResults(d.results);
+                    if (d.status !== "running") {
+                        clearInterval(_tlPollTimer);
+                        _tlPollTimer = null;
+                        _tlJobId = null;
+                        document.getElementById("tl-run-btn").disabled = false;
+                        document
+                            .getElementById("tl-spinner")
+                            .classList.add("hidden");
+                        showToast(
+                            `tests done: ${d.results.filter((r) => r.status === "ok").length}/${d.total} ok`,
+                            "ok",
+                        );
+                        loadModels(); // refresh main models table
+                    }
+                } catch (e) {
+                    clearInterval(_tlPollTimer);
+                    document.getElementById("tl-run-btn").disabled = false;
+                    document
+                        .getElementById("tl-spinner")
+                        .classList.add("hidden");
+                }
+            }
+
+            function tlRenderResults(results) {
+                const area = document.getElementById("tl-results-area");
+                if (!results.length) return;
+
+                const byType = {};
+                for (const r of results) {
+                    const t = r.type || "unknown";
+                    if (!byType[t]) byType[t] = [];
+                    byType[t].push(r);
+                }
+
+                const IMAGE_TYPES = new Set([
+                    "image",
+                    "image_multipart",
+                    "image_inpainting",
+                ]);
+
+                area.innerHTML = Object.entries(byType)
+                    .map(([type, rows]) => {
+                        const isImg = IMAGE_TYPES.has(type);
+                        const rowsHtml = rows
+                            .map((r) => {
+                                const sc =
+                                    r.status === "ok"
+                                        ? "chip-green"
+                                        : "chip-red";
+                                const short = r.model
+                                    .replace("@cf/", "")
+                                    .replace("@aiio/", "");
+                                let resultCell = "";
+                                if (r.status === "ok" && isImg && r.result) {
+                                    resultCell = `<img src="data:image/png;base64,${r.result}" style="max-height:120px;max-width:200px;border-radius:4px;display:block" alt="${escHtml(short)}">`;
+                                } else if (r.status === "ok" && r.result) {
+                                    resultCell = `<span style="font-family:var(--font-mono);font-size:var(--fs-10);color:var(--text-hi);white-space:pre-wrap;word-break:break-word">${escHtml(r.result.substring(0, 300))}${r.result.length > 300 ? "…" : ""}</span>`;
+                                } else if (r.status === "error") {
+                                    resultCell = `<span style="font-family:var(--font-mono);font-size:var(--fs-10);color:var(--red)">${escHtml((r.error || "").substring(0, 200))}</span>`;
+                                }
+                                return `<tr>
+                            <td><span class="chip ${r.provider === "cf" ? "chip-accent" : "chip-purple"}">${r.provider}</span></td>
+                            <td style="font-family:var(--font-mono);font-size:var(--fs-10);color:var(--text-hi)">${escHtml(short)}</td>
+                            <td><span class="chip ${sc}">${r.status}</span></td>
+                            <td style="font-family:var(--font-mono);font-size:var(--fs-10);color:var(--muted)">${r.avtime ? r.avtime + "ms" : "—"}</td>
+                            <td>${resultCell}</td>
+                        </tr>`;
+                            })
+                            .join("");
+                        return `<div style="padding:8px 12px;border-bottom:1px solid var(--border)">
+                        <div class="sec-label" style="margin-bottom:6px">${type}</div>
+                        <table style="width:100%">
+                            <thead><tr>
+                                <th style="width:50px">prov</th>
+                                <th>model</th>
+                                <th style="width:56px">status</th>
+                                <th style="width:70px">latency</th>
+                                <th>result</th>
+                            </tr></thead>
+                            <tbody>${rowsHtml}</tbody>
+                        </table>
+                    </div>`;
+                    })
+                    .join("");
+            }
+
+            /* ── HELPERS ── */
+            function escHtml(s) {
+                return String(s)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;");
+            }
+            function fmtDateShort(ts) {
+                if (!ts) return "—";
+                const d = new Date(ts);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            }
+        </script>
+    </body>
+</html>
