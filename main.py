@@ -14,7 +14,7 @@ from router_completions import router as completions_router
 
 # ================== LOGGING ==================
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -33,33 +33,32 @@ sync_schema(DB_NAME)
 # ================== FASTAPI APP ==================
 app = FastAPI(title="AI Box", version="1.0")
 
-# Монтирование статики (рекомендуется создать папку static)
-app.mount("/static", StaticFiles(directory="static", html=True), name="static")
-
 # Подключаем роутеры
 app.include_router(completions_router)
 app.include_router(anthropic_router)
 app.include_router(admin_router)
 
+# Монтируем папку static ТОЛЬКО если она существует
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+    logger.info("Static folder mounted at /static")
+else:
+    logger.warning("Папка 'static' не найдена. Статические файлы отключены.")
 
 # ================== MAIN ROUTES ==================
-@app.get("/", response_class=FileResponse)
+@app.get("/")
 async def root():
-    """Главная страница"""
-    if os.path.exists("index.html"):
-        return FileResponse("index.html")
-    else:
-        return {
-            "status": "ok",
-            "message": "AI Box Server is running",
-            "docs": "/docs",
-            "admin": "/admin"
-        }
+    return {
+        "status": "ok",
+        "message": "AI Box Server is running",
+        "docs": "/docs",
+        "admin": "/admin"
+    }
 
 
 @app.get("/admin", response_class=FileResponse)
 async def admin_dashboard():
-    """Админка"""
+    """Главная страница админки"""
     if os.path.exists("admin-dash.html"):
         return FileResponse("admin-dash.html")
     elif os.path.exists("static/admin-dash.html"):
@@ -70,7 +69,6 @@ async def admin_dashboard():
 
 @app.get("/health")
 def health():
-    logger.debug("health check called")
     return {"status": "ok", "db": DB_NAME}
 
 
@@ -80,6 +78,6 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=PORT,
-        reload=True,           # убрать на продакшене
+        reload=True,
         log_level="info"
     )
