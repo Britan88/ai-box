@@ -36,7 +36,15 @@ app.include_router(admin_router)
 def health():
     logger.debug("health check called")
     return {"status": "ok", "db": DB_NAME}
-
+@app.get("/")
+async def root():
+    return {
+        "status": "ok",
+        "message": "Сервер работает",
+        "docs": "/docs",
+        "redoc": "/redoc",
+        "static": "/static"
+    }
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=PORT, reload=True)
